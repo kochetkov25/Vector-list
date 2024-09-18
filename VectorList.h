@@ -33,11 +33,10 @@ public:
 	/*size of VectorList*/
 	size_t size() const
 	{
-		size_t size = 0;
-		for (const auto& vec : data_)
-			for (const auto& el : vec)
-				size++;
-		return size;
+		size_t cnt = 0;
+		for(auto it = data_.cbegin(); it != data_.cend(); it++)
+			cnt += it->size();
+		return cnt;
 	}
 private:
 	ListT data_;
@@ -57,19 +56,53 @@ private:
 
 		/*fields*/
 		ListT const* m_pData;
-		pointer m_ptr;
 		ItL m_itL;
 		ItV m_itV;
 
 		/*ctors*/ 
 		const_iterator() = default;
 		const_iterator(const const_iterator&) = default;
-		const_iterator(ItL itL, ItV itV, ListT const* pData, pointer ptr)
+		const_iterator(ItL itL, ItV itV, ListT const* pData = nullptr)
 		{
 			m_itL = itL;
 			m_itV = itV;
 			m_pData = pData;
-			m_ptr = ptr;
+		}
+		/*operators*/
+		reference operator*() const
+		{
+			return static_cast<reference>(*m_itV);
+		}
+		/*prefix increment operator*/
+		const_iterator& operator++()
+		{
+			/*is vec it valid*/
+			m_itV++;
+			if(m_itV != (*m_itL).cend())
+				return *this;
+			/*is list it valid*/
+			m_itL++;
+			if(m_itL != m_pData->cend())
+			{
+				m_itV = m_itL->cbegin();
+				return *this;
+			}
+			return *this;
+		}
+		/*postfix increment operator*/
+		const_iterator operator++(int)
+		{
+			auto tmp = *this;
+			++(*this);
+			return tmp;
+		}
+		bool operator==(const const_iterator& it) const
+		{
+			return it.m_itV == m_itV;
+		}
+		bool operator!=(const const_iterator& it) const
+		{
+			return !(it == *this);
 		}
 	};
 public:
@@ -80,8 +113,17 @@ public:
 		if (data_.empty())
 			return const_iterator();
 
-		//auto it = data_.begin()->begin();
+		auto ListBgn = data_.cbegin();
+		auto VecBgn = ListBgn->cbegin();
 
-		return const_iterator(data_.begin(), data_.begin()->begin(), &data_, &(*(data_.begin()->begin())));
+		return const_iterator(ListBgn, VecBgn, &data_);
+	}
+	const_iterator end()
+	{
+		if(data_.empty())
+			return const_iterator();
+		auto ListEnd = data_.cend();
+		auto VecEnd = (--data_.cend())->cend();
+		return const_iterator(ListEnd, VecEnd, &data_);
 	}
 };

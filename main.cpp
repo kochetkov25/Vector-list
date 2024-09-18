@@ -21,13 +21,14 @@ int main()
 	v.append(vec.begin(), vec.end());
 	vec = { 5,7,9,0,2,3,4,5,6,7 };
 	v.append(vec.begin(), vec.end());
-	vec = { 6,8,0 };
+	vec = { 6,8,101,202 };
 	v.append(vec.begin(), vec.end());
 
-	//std::list<std::vector<int>> l;
-	//auto it = l.begin();
+	for(auto it = v.begin(); it != v.end(); it++)
+	{
+		std::cout<<*it<<" ";
+	}
 
-	auto it = v.begin();
-
-	printf("------------------------");
+	printf("\n");
+	printf("End \n------------------------ \n");
 }
