@@ -10,6 +10,7 @@
 
 #include "VectorList.h"
 
+//extern void RunAllTests();
 
 int main()
 {
@@ -28,7 +29,20 @@ int main()
 	{
 		std::cout<<*it<<" ";
 	}
-
 	printf("\n");
+
+
+
+	auto eIt = v.end();
+	eIt--;
+	for( ; eIt != v.begin(); eIt--)
+	{
+		std::cout<<*eIt<<" ";
+	}
+	std::cout<<*eIt;
+	printf("\n");
+
+	auto rIt = v.rbegin();
+
 	printf("End \n------------------------ \n");
 }

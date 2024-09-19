@@ -1,4 +1,5 @@
 #pragma once
+#include <iterator>
 #include <vector>
 #include <list>
 
@@ -73,6 +74,10 @@ private:
 		{
 			return static_cast<reference>(*m_itV);
 		}
+		pointer operator->() const
+		{
+			return *m_itV;
+		}
 		/*prefix increment operator*/
 		const_iterator& operator++()
 		{
@@ -96,6 +101,30 @@ private:
 			++(*this);
 			return tmp;
 		}
+		/*prefix decrement operator*/
+		const_iterator& operator--()
+		{
+			if(m_itV != m_itL->cbegin())
+			{
+				m_itV--;
+				return *this;
+			}
+
+			if(m_itL != m_pData->cbegin())
+			{
+				m_itL--;
+				m_itV = --(m_itL->cend());
+				return *this;
+			}
+			return *this;
+		}
+		/*postfix decrement operator*/
+		const_iterator operator--(int)
+		{
+			auto tmp = *this;
+			--(*this);
+			return tmp;
+		}
 		bool operator==(const const_iterator& it) const
 		{
 			return it.m_itV == m_itV;
@@ -105,25 +134,33 @@ private:
 			return !(it == *this);
 		}
 	};
+	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 public:
 
 	/*methods*/
-	const_iterator begin()
+	const_iterator begin() const
 	{
 		if (data_.empty())
 			return const_iterator();
 
 		auto ListBgn = data_.cbegin();
 		auto VecBgn = ListBgn->cbegin();
-
 		return const_iterator(ListBgn, VecBgn, &data_);
 	}
-	const_iterator end()
+	const_iterator end() const
 	{
 		if(data_.empty())
 			return const_iterator();
-		auto ListEnd = data_.cend();
-		auto VecEnd = (--data_.cend())->cend();
-		return const_iterator(ListEnd, VecEnd, &data_);
+		auto LastLstElem = --(data_.cend());
+		auto VecEnd = LastLstElem->cend();
+		return const_iterator(LastLstElem, VecEnd, &data_);
+	}
+	const_reverse_iterator rbegin() const
+	{
+		return const_reverse_iterator(end());
+	}
+	const_reverse_iterator rend() const
+	{
+		return const_reverse_iterator(begin());
 	}
 };
