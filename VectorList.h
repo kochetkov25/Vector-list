@@ -28,29 +28,30 @@ public:
 			data_.push_back(VectT(p, q));
 	}
 
-	/*empty - true*/
+	/*empty -> true*/
 	bool empty() const { return size() == 0; }
 
-	/*size of VectorList*/
+	/*size of all items in each vector*/
 	size_t size() const
 	{
 		size_t cnt = 0;
-		for(auto it = data_.cbegin(); it != data_.cend(); it++)
-			cnt += it->size();
+		/*need to avoid: "Some redundant copy operations detected"*/
+		for(const auto& vec : data_)
+			cnt += vec.size();
 		return cnt;
 	}
 private:
 	ListT data_;
 
-private:
+public:
 	struct const_iterator
 	{
 		/*usings*/
 		using iterator_category = std::bidirectional_iterator_tag;
-		using difference_type = void;
+		using difference_type   = std::ptrdiff_t;
 		using value_type = const T;
-		using pointer = const T*;
-		using reference = const T&;
+		using pointer    = const T*;
+		using reference  = const T&;
 
 		using ItL = typename ListT::const_iterator;
 		using ItV = typename VectT::const_iterator;
@@ -63,21 +64,30 @@ private:
 		/*ctors*/ 
 		const_iterator() = default;
 		const_iterator(const const_iterator&) = default;
-		const_iterator(ItL itL, ItV itV, ListT const* pData = nullptr)
-		{
-			m_itL = itL;
-			m_itV = itV;
-			m_pData = pData;
-		}
+		const_iterator(ItL itL, ItV itV, ListT const* pData = nullptr) 
+			: m_itL(itL), m_itV(itV), m_pData(pData)
+		{}
 		/*operators*/
 		reference operator*() const
 		{
-			return static_cast<reference>(*m_itV);
+			return *m_itV;
 		}
 		pointer operator->() const
 		{
-			return *m_itV;
+			return &*m_itV;
 		}
+
+		bool operator==(const const_iterator& it) const
+		{
+			/*if i use (this->m_itV == it.m_itV),i get 
+			"vector iterators incompatible on C++14"*/
+			return this->m_itV._Ptr == it.m_itV._Ptr;
+		}
+		bool operator!=(const const_iterator& it) const
+		{
+			return !(it == *this);
+		}
+
 		/*prefix increment operator*/
 		const_iterator& operator++()
 		{
@@ -86,11 +96,10 @@ private:
 			if(m_itV != (*m_itL).cend())
 				return *this;
 			/*is list it valid*/
-			m_itL++;
-			if(m_itL != m_pData->cend())
+			if (m_itL != std::prev(m_pData->cend()))
 			{
+				m_itL++;
 				m_itV = m_itL->cbegin();
-				return *this;
 			}
 			return *this;
 		}
@@ -101,20 +110,21 @@ private:
 			++(*this);
 			return tmp;
 		}
+
 		/*prefix decrement operator*/
 		const_iterator& operator--()
 		{
+			/*is vec valid*/
 			if(m_itV != m_itL->cbegin())
 			{
 				m_itV--;
 				return *this;
 			}
-
+			/*is list valid*/
 			if(m_itL != m_pData->cbegin())
 			{
 				m_itL--;
-				m_itV = --(m_itL->cend());
-				return *this;
+				m_itV = std::prev(m_itL->cend());
 			}
 			return *this;
 		}
@@ -125,22 +135,14 @@ private:
 			--(*this);
 			return tmp;
 		}
-		bool operator==(const const_iterator& it) const
-		{
-			return it.m_itV == m_itV;
-		}
-		bool operator!=(const const_iterator& it) const
-		{
-			return !(it == *this);
-		}
 	};
+
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 public:
-
-	/*methods*/
+	/*iterators*/
 	const_iterator begin() const
 	{
-		if (data_.empty())
+		if (empty())
 			return const_iterator();
 
 		auto ListBgn = data_.cbegin();
@@ -149,12 +151,13 @@ public:
 	}
 	const_iterator end() const
 	{
-		if(data_.empty())
+		if(empty())
 			return const_iterator();
 		auto LastLstElem = --(data_.cend());
 		auto VecEnd = LastLstElem->cend();
 		return const_iterator(LastLstElem, VecEnd, &data_);
 	}
+	/*reverse iterators*/
 	const_reverse_iterator rbegin() const
 	{
 		return const_reverse_iterator(end());
